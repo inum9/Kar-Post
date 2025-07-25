@@ -1,5 +1,7 @@
 // src/models/user.model.js
 import mongoose from 'mongoose';
+import bcrypt from "bcryptjs"
+import jwt from "jsonwebtoken";
 
 const userSchema = new mongoose.Schema({
   username: {
@@ -16,6 +18,10 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
     trim: true,
   },
+    refreshToken: {
+            type: String
+        },
+        
   password: {
     type: String,
     required: [true, 'Password is required'],
