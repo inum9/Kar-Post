@@ -36,7 +36,7 @@ const handleLinkedInCallback =asyncHandler(async (req,res)=>{
             code: code,
             client_id: process.env.LINKEDIN_CLIENT_ID,
             client_secret: process.env.LINKEDIN_CLIENT_SECRET,
-            redirect_uri: 'http://localhost:8000/api/v1/linkedin/callback'
+            redirect_uri: 'http://localhost:8000/api/v1/linkdin/callback'
         },
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
     });
@@ -46,6 +46,11 @@ const handleLinkedInCallback =asyncHandler(async (req,res)=>{
 
     }
     const accessToken=await tokenResponse.data.access_token;
+    const profileResponse = await axios.get('https://api.linkedin.com/v2/userinfo', {
+    headers: { 'Authorization': `Bearer ${accessToken}` }
+});
+
+const linkedinUserId = profileResponse.data.sub; 
        req.user.linkedinAccessToken = accessToken;
     await req.user.save({ validateBeforeSave: false });
      return res.status(200).json(new ApiResponse(200,{},"data fetched successfully"));
