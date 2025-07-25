@@ -26,9 +26,9 @@ const generateTokens = async (userId) => {
   }
 };
 const userRegister = asyncHandler(async (req, res) => {
-  try {
+  
     const { email, username, password } = req.body;
-    if (!(email || username || password)) {
+    if (!email || !username || !password) {
       throw new ApiError(401, "user need fill all  required data!");
     }
     const existingUser = await User.findOne({
@@ -49,9 +49,9 @@ const userRegister = asyncHandler(async (req, res) => {
     return res
       .status(200)
       .json(new ApiResponse(200, createdUser, "user created successfully!!"));
-  } catch (error) {
-    console.log(`error in register controller ${error}`);
-  }
+ 
+    
+  
 });
 
 const userLogin = asyncHandler(async (req, res) => {

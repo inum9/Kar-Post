@@ -25,6 +25,14 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
     required: [true, 'Password is required'],
+  },
+  linkedinAccessToken: {
+    type: String,
+    default: null
+  },
+  linkedinId: {
+    type: String, // LinkedIn's unique ID for the user
+    default: null
   }
 
 }, { timestamps: true });
