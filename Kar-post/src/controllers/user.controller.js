@@ -1,4 +1,4 @@
-import { use } from "react";
+
 import { User } from "../model/user.model.js ";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
@@ -11,7 +11,7 @@ const options = {
 
 const generateTokens = async (userId) => {
   try {
-    const user = await User.findbyId(userId);
+    const user = await User.findById(userId);
     if (!user) {
       throw new ApiError(401, "user not fetched successfully");
     }
@@ -34,7 +34,7 @@ const userRegister = asyncHandler(async (req, res) => {
     const existingUser = await User.findOne({
       $or: [{ email }, { username }],
     });
-    if (!existingUser) {
+    if (existingUser) {
       throw new ApiError(401, "user already existed !");
     }
 
@@ -56,10 +56,10 @@ const userRegister = asyncHandler(async (req, res) => {
 
 const userLogin = asyncHandler(async (req, res) => {
   const { email, password } = req.body;
-  if (!(email || password)) {
-    throw new ApiError(401, "user is filling the data corrrectly");
-  }
-  const logedInUser = User.findOne({ email });
+if (!email || !password) {
+    throw new ApiError(400, "Email and password are required");
+}
+  const logedInUser =await User.findOne({ email });
   if (!logedInUser) {
     throw new ApiError(401, " user is not registered !!");
   }
@@ -69,7 +69,7 @@ const userLogin = asyncHandler(async (req, res) => {
   }
 
   const { accessToken, refreshToken } = await generateTokens(logedInUser._id);
-  const finalUser = await User.findById(user._id).select(
+  const finalUser = await User.findById(logedInUser._id).select(
     "-password -refreshToken"
   );
   if (!finalUser) {
