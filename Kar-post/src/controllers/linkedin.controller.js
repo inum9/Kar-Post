@@ -72,4 +72,50 @@ const handleLinkedInCallback = asyncHandler(async (req, res) => {
     throw new ApiError(500, "Failed to connect LinkedIn account.");
   }
 });
-export { redirectToLinkdin, handleLinkedInCallback };
+const createLinkdinPost= asyncHandler (async(req,res)=>{
+     const { content } = req.body;
+    const user = req.user;
+       if (!content) {
+        throw new ApiError(400, "Content is required to make a post.");
+    }
+
+    // Check if the user has connected their LinkedIn account
+    if (!user.linkedinAccessToken || !user.linkedinId) {
+        throw new ApiError(400, "LinkedIn account is not connected. Please connect your account first.");
+    }
+
+       const postBody = {
+        author: `urn:li:person:${user.linkedinId}`,
+        lifecycleState: 'PUBLISHED',
+        specificContent: {
+            'com.linkedin.ugc.ShareContent': {
+                shareCommentary: {
+                    text: content
+                },
+                shareMediaCategory: 'NONE'
+            }
+        },
+        visibility: {
+            'com.linkedin.ugc.MemberNetworkVisibility': 'PUBLIC'
+        }
+    };try {
+        // Make the API call to LinkedIn's UGC (User Generated Content) Posts API
+        await axios.post('https://api.linkedin.com/v2/ugcPosts', postBody, {
+            headers: {
+                'Authorization': `Bearer ${user.linkedinAccessToken}`,
+                'Content-Type': 'application/json',
+                'X-Restli-Protocol-Version': '2.0.0' // Required header for this API
+            }
+        });
+
+      return   res.status(200).json(new ApiResponse(200, {}, "Post was successfully published on LinkedIn!"));
+
+    } catch (error) {
+        console.error("Error posting to LinkedIn:", error.response?.data || error.message);
+        throw new ApiError(500, "Failed to publish post on LinkedIn.");
+    }
+
+});
+
+export { redirectToLinkdin, handleLinkedInCallback ,createLinkdinPost };
+
