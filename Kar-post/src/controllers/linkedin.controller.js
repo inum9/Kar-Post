@@ -20,57 +20,56 @@ const redirectToLinkdin = asyncHandler(async (req, res) => {
   }
 });
 
-// 2. Controller to handle the callback, get the token, and save it
 const handleLinkedInCallback = asyncHandler(async (req, res) => {
-  try {
-    const { code } = req.query; // The temporary auth code from LinkedIn
-    const userId = req.user._id; // The logged-in user's ID from our middleware
-    if (!userId) {
-      throw new ApiError(401, "userId is not found !!or undefined  ");
+    try {
+        const { code } = req.query;
+        const userId = req.user._id;
+
+        if (!userId) {
+            throw new ApiError(401, "userId is not found!");
+        }
+        if (!code) {
+            throw new ApiError(400, "LinkedIn authorization code not found.");
+        }
+
+        // Step 1: Exchange code for access token (This part is correct in your code)
+        const tokenResponse = await axios.post(
+            "https://www.linkedin.com/oauth/v2/accessToken",
+            null,
+            {
+                params: {
+                    grant_type: "authorization_code",
+                    code: code,
+                    client_id: process.env.LINKEDIN_CLIENT_ID,
+                    client_secret: process.env.LINKEDIN_CLIENT_SECRET,
+                    redirect_uri: "http://localhost:8000/api/v1/linkedin/callback",
+                },
+                headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            }
+        );
+
+        const accessToken = tokenResponse.data.access_token;
+        
+        // ✅ START: THIS IS THE MISSING PART
+        // Step 2: Use the access token to get the user's LinkedIn ID
+        const profileResponse = await axios.get('https://api.linkedin.com/v2/userinfo', {
+            headers: { 'Authorization': `Bearer ${accessToken}` }
+        });
+
+        const linkedinUserId = profileResponse.data.sub; 
+        // ✅ END: THIS IS THE MISSING PART
+
+        // Step 3: Save BOTH the token and the ID to the user's record
+        req.user.linkedinAccessToken = accessToken;
+        req.user.linkedinId = linkedinUserId; // Save the newly fetched ID
+        await req.user.save({ validateBeforeSave: false });
+
+        res.status(200).json(new ApiResponse(200, {}, "Successfully connected LinkedIn account and saved user ID!"));
+
+    } catch (error) {
+        console.error("THE REAL ERROR FROM LINKEDIN IS:", error.response?.data);
+        throw new ApiError(500, "Failed to connect LinkedIn account.");
     }
-
-    if (!code) {
-      throw new ApiError(400, "LinkedIn authorization code not found.");
-    }
-
-    // Exchange the code for an access token
-    const tokenResponse = await axios.post(
-      "https://www.linkedin.com/oauth/v2/accessToken",
-      null,
-
-      {
-        params: {
-          grant_type: "authorization_code",
-          code: code,
-          client_id: process.env.LINKEDIN_CLIENT_ID,
-          client_secret: process.env.LINKEDIN_CLIENT_SECRET,
-          redirect_uri: "http://localhost:8000/api/v1/linkedin/callback",
-        },
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      },
-   
-      
-    
-      
-    );
-
-
-    
-    const accessToken = tokenResponse.data.access_token;
-
-    // Save the access token to the user's record
-    req.user.linkedinAccessToken = accessToken;
-    await req.user.save({ validateBeforeSave: false });
-
-    res
-      .status(200)
-      .json(
-        new ApiResponse(200, {}, "Successfully connected LinkedIn account!")
-      );
-  } catch (error) {
-    console.error("THE REAL ERROR FROM LINKEDIN IS:", error.response?.data);
-    throw new ApiError(500, "Failed to connect LinkedIn account.");
-  }
 });
 const createLinkdinPost= asyncHandler (async(req,res)=>{
      const { content } = req.body;
