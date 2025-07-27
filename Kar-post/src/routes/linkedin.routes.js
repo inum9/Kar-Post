@@ -1,6 +1,6 @@
 import  {Router} from "express";
 import { verifyJwt } from "../middleware/auth.middleware.js";
-import { handleLinkedInCallback, redirectToLinkdin } from "../controllers/linkdin.controller.js";
+import { handleLinkedInCallback, redirectToLinkdin } from "../controllers/linkedin.controller.js";
 const linkRoutes=Router();
 
 // This route starts the process and needs the user to be logged in
