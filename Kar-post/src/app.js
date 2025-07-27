@@ -8,6 +8,9 @@ app.use(cookieParser());
 
 import  {userRoutes} from "../src/routes/user.routes.js";
 import { linkRoutes  } from "./routes/linkedin.routes.js";
+import { postRoutes } from "./routes/post.routes.js";
+app.use("/api/v1/post",postRoutes);
 app.use("/api/v1/linkedin",linkRoutes);
 app.use("/api/v1/user",userRoutes)
+
 export {app};
