@@ -1,6 +1,6 @@
 import  {Router} from "express";
 import { verifyJwt } from "../middleware/auth.middleware.js";
-import { handleLinkedInCallback, redirectToLinkdin ,createLinkdinPost} from "../controllers/linkedin.controller.js";
+import { handleLinkedInCallback, redirectToLinkdin ,createLinkdinPost, genrateAndPost} from "../controllers/linkedin.controller.js";
 import { generatePostContent } from "../utils/Ai.util.js";
 const linkRoutes=Router();
 
@@ -12,5 +12,6 @@ linkRoutes.route('/callback').get(verifyJwt, handleLinkedInCallback);
 
 // This route creates a new post on the user's feed.
 linkRoutes.route('/post').post(verifyJwt,createLinkdinPost);
-linkRoutes.route("/ai-gen").post(verifyJwt,generatePostContent)
+linkRoutes.route("/ai-gen").post(verifyJwt,generatePostContent);
+linkRoutes.route('/generate-and-post').post(genrateAndPost);
 export {linkRoutes};

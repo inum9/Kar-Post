@@ -3,6 +3,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/AsyncHandler.js";
 import { Post } from "../model/post.model.js";
 
+
 const  schedulePost =asyncHandler(async (req,res)=>{
 const { content, publishAt } = req.body;
 if(!content||!publishAt)
