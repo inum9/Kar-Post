@@ -1,27 +1,55 @@
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { PromptTemplate } from "@langchain/core/prompts";
+import { ApiError } from "./ApiError.js";
+const apikey = process.env.GOOGLE_API_KEY;
+if (!apikey || apikey == undefined) {
+  throw new ApiError(401, "api key is either invalid or  undefined!!");
+}
+console.log(apikey);
 
-const llm= new ChatGoogleGenerativeAI({
-    apiKey:process.env.GOOGLE_API_KEY,
-    model:"gemini-pro",
-    temperature: 0.7,
+// initialize the gemini model
+const aiModel = new ChatGoogleGenerativeAI({
+  apiKey: apikey,
+  modelName: "gemini-pro",
+  temperature: 0.7,
 });
+if (!aiModel) {
+  throw new ApiError(401, "ai model  cannot  be created");
+}
+// prompt for  ai  to guide the  model;
 const postGenerationTemplate = `
-You are an expert LinkedIn content strategist. Your goal is to write an engaging and professional post based on a given topic.
+You are a world-class LinkedIn content strategist. Your task is to write an engaging, professional post based on a given topic.
 
-Instructions:
-1.  **Tone:** Write in a professional, yet approachable and slightly informal tone.
-2.  **Structure:** Start with a strong hook to grab attention. Use short paragraphs and bullet points for readability. End with a question or a call-to-action to encourage engagement.
-3.  **Hashtags:** Include 3-5 relevant and popular hashtags at the end. Do not use more than 5.
-4.  **Content:** Elaborate on the topic provided, offering a fresh perspective or valuable insight.
+Follow these instructions strictly:
+- **Hook:** Start with a strong, attention-grabbing first sentence.
+- **Body:** Use short, easy-to-read paragraphs or bullet points. Provide a valuable insight or a fresh perspective on the topic.
+- **Call to Action:** End with a question to encourage comments and engagement.
+- **Hashtags:** Include exactly 3 to 5 relevant hashtags at the end.
 
-Topic to write about: "{topic}"
+Topic: "{topic}"
 
 Generated LinkedIn Post:
 `;
+if (!postGenerationTemplate) {
+  throw new ApiError(401, "prompt cannot  be created");
+}
 const promptTemplate = PromptTemplate.fromTemplate(postGenerationTemplate);
-export const generatePostContent = async (topic) => {
-    const chain = promptTemplate.pipe(llm);
-    const result = await chain.invoke({ topic });
-    return result.content;
-};
+if (!PromptTemplate) {
+  throw new ApiError(401, "prompt template is already defaulted!");
+}
+console.log(promptTemplate);
+const  generatePostContent=async(topic)=>
+{
+    if(!apikey)
+    {
+        throw new ApiError(401,"please insert the api key for ai  !")
+    }
+    // Create a chain that pipes the formatted prompt into the AI model
+  const promptPipe=  promptTemplate.pipe(aiModel);
+  const result= await promptPipe.invoke({topic});
+  if(!result)
+  {
+    throw new ApiError(401,"result not found  !");
+  }
+}
+export{generatePostContent};
